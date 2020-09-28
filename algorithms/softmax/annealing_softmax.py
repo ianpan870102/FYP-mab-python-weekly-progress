@@ -16,12 +16,14 @@ class AnnealingSoftmax:
   def __init__(self, counts, values):
     self.counts = counts
     self.values = values
-    return
 
   def initialize(self, n_arms):
     self.counts = [0 for col in range(n_arms)]
     self.values = [0.0 for col in range(n_arms)]
-    return
+
+  def get_name(self):
+    """Returns the name of this algorithm"""
+    return "Annealing Boltzmann"
 
   def select_arm(self):
     t = sum(self.counts) + 1

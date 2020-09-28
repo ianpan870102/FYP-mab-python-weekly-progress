@@ -71,8 +71,8 @@ def plot_graph(timesteps, arms, algorithms, algorithm_rewards, algorithm_cum_rew
     plt.title("Arm selection scatter plot", fontsize=13)
 
   plt.tight_layout(pad=2.0)
-  plt.savefig('./figures/graph_demo.png')
-  # plt.show()
+  # plt.savefig('./figures/graph_demo.png')
+  plt.show()
 
 
 def plot_cum_rewards(algorithms, algorithm_cum_rewards, timesteps, max_cum_reward):
@@ -85,8 +85,8 @@ def plot_cum_rewards(algorithms, algorithm_cum_rewards, timesteps, max_cum_rewar
   plt.ylabel(f'Cum. reward comparisons', fontsize=12)
   plt.title(f"Cumulative Reward", fontsize=13)
   plt.axis([0, timesteps, 0, max_cum_reward])
-  plt.savefig('./figures/cum_rewards.png')
-  # plt.show()
+  # plt.savefig('./figures/cum_rewards.png')
+  plt.show()
 
 
 def main():
@@ -109,9 +109,10 @@ def main():
   algo_ucb1 = UCB1([], [])
   algo_ucb_bayesian = UCB_Bayesian(1.96, [], [])  # 95% confident
   algo_softmax = Softmax(.2, [], [])
+  algo_anneal_softmax = AnnealingSoftmax([], [])
   algo_exp3 = Exp3(.2, [])
 
-  algorithms = [algo_epsilon, algo_ucb1, algo_softmax]
+  algorithms = [algo_softmax, algo_anneal_softmax, algo_exp3]
   algorithm_rewards = []  # 2D list[algo][t] (array of running avg. rewards for each algo at time-step t)
   algorithm_cum_rewards = []  # 2D list[algo][t] (array of cumulative rewards for each algo at time-step t)
   algorithm_arm_selections = []  # 2D list[algo][t] (array of arm selections for each algo at time-step t)
