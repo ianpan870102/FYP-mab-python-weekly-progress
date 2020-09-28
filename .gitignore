@@ -1,0 +1,7 @@
+.DS_Store
+*csv
+*tsv
+*pdf
+*pyc
+__pycache__/
+.dir-locals.el
