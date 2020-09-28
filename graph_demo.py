@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import random
 import matplotlib.pyplot as plt
-from arms.adversarial import AdversarialArm
 from arms.bernoulli import BernoulliArm
 from arms.normal import NormalArm
 from algorithms.epsilon_greedy.standard_epsilon import EpsilonGreedy
@@ -9,11 +8,8 @@ from algorithms.epsilon_greedy.annealing_epsilon import AnnealingEpsilonGreedy
 from algorithms.softmax.standard_softmax import Softmax
 from algorithms.softmax.annealing_softmax import AnnealingSoftmax
 from algorithms.ucb.ucb1 import UCB1
-from algorithms.ucb.correlation_leveraging_ucb import Correlation_Leveraging_UCB
-from algorithms.ucb.ucb2 import UCB2
 from algorithms.ucb.ucb_bayesian import UCB_Bayesian
 from algorithms.exp3.exp3 import Exp3
-from algorithms.hedge.hedge import Hedge
 
 from matplotlib import rcParams
 rcParams['font.family'] = ['Roboto']
@@ -75,8 +71,8 @@ def plot_graph(timesteps, arms, algorithms, algorithm_rewards, algorithm_cum_rew
     plt.title("Arm selection scatter plot", fontsize=13)
 
   plt.tight_layout(pad=2.0)
-  # plt.savefig('./figures/graph_demo.png')
-  plt.show()
+  plt.savefig('./figures/graph_demo.png')
+  # plt.show()
 
 
 def plot_cum_rewards(algorithms, algorithm_cum_rewards, timesteps, max_cum_reward):
@@ -89,7 +85,8 @@ def plot_cum_rewards(algorithms, algorithm_cum_rewards, timesteps, max_cum_rewar
   plt.ylabel(f'Cum. reward comparisons', fontsize=12)
   plt.title(f"Cumulative Reward", fontsize=13)
   plt.axis([0, timesteps, 0, max_cum_reward])
-  plt.show()
+  plt.savefig('./figures/cum_rewards.png')
+  # plt.show()
 
 
 def main():
@@ -110,8 +107,6 @@ def main():
   algo_epsilon = EpsilonGreedy(0.05, [], [])
   algo_anneal_epsilon = AnnealingEpsilonGreedy([], [])
   algo_ucb1 = UCB1([], [])
-  algo_correlation_leveraging_ucb = Correlation_Leveraging_UCB(.01, 1, [], [])
-  algo_ucb2 = UCB2(.125, [], [])
   algo_ucb_bayesian = UCB_Bayesian(1.96, [], [])  # 95% confident
   algo_softmax = Softmax(.2, [], [])
   algo_exp3 = Exp3(.2, [])
