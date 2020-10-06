@@ -1,4 +1,5 @@
 import random
+from scipy.stats import bernoulli  # import bernoulli
 
 
 class BernoulliArm():
@@ -6,4 +7,5 @@ class BernoulliArm():
     self.mu = mu
 
   def draw_reward(self):
-    return 0.0 if random.random() > self.mu else 1.0
+    return bernoulli.rvs(self.mu)
+    # return 0.0 if random.random() < self.mu else 1.0

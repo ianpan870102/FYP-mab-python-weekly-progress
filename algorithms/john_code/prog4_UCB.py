@@ -15,7 +15,7 @@ winning_parameters = np.array([0.2, 0.3, 0.85, 0.9], dtype=float)
 max_prob = 0.9  # record the highest probability of winning for all arms
 optimal_arm = 3  # index for the optimal arm
 T = 1000  # number of rounds to simulate
-total_iteration = 1  # number of iterations to the MAB simulation
+total_iteration = 200  # number of iterations to the MAB simulation
 
 reward_round_iteration = np.zeros((T), dtype=int)  # reward in each round average by # of iteration
 
@@ -38,7 +38,7 @@ for iteration_count in range(total_iteration):
     cumulative_reward[select_arm] += float(current_reward)
     # compute UCB estimate. Note that we need to do log(round +1) because round starts with 0
     estimated_reward[select_arm]  = cumulative_reward[select_arm]/float(num_selected[select_arm]) +  \
-             np.sqrt(np.log(round+1)/float(num_selected[select_arm]))
+             np.sqrt(2*np.log(round+1)/float(num_selected[select_arm]))
 
     reward_round_iteration[round] += current_reward
 
