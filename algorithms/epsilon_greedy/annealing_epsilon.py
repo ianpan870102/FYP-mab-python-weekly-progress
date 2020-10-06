@@ -7,13 +7,9 @@ def argmax(arr):
 
 
 class AnnealingEpsilonGreedy():
-  def __init__(self, counts, q_values):
-    self.counts = counts  # no. of times each arm has been pulled
-    self.q_values = q_values  # current Q-value of each arm
-
-  def initialize(self, n_arms):
-    self.counts = [0]*n_arms
-    self.q_values = [0.0]*n_arms
+  def __init__(self, n_arms):
+    self.counts = [0]*n_arms  # no. of times each arm has been pulled
+    self.q_values = [0.0]*n_arms  # current Q-value of each arm
 
   def get_name(self):
     """Returns the name of this algorithm"""

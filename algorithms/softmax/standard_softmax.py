@@ -13,12 +13,8 @@ def weighted_draw(probs):
 
 
 class Softmax:
-  def __init__(self, tau, counts, q_values):
+  def __init__(self, tau, n_arms):
     self.tau = tau
-    self.counts = counts
-    self.q_values = q_values
-
-  def initialize(self, n_arms):
     self.counts = [0 for col in range(n_arms)]
     self.q_values = [0.0 for col in range(n_arms)]
 
@@ -35,5 +31,6 @@ class Softmax:
     self.counts[chosen_arm] = self.counts[chosen_arm] + 1
     n = self.counts[chosen_arm]
     value = self.q_values[chosen_arm]
+    # Smart way of
     new_value = ((n - 1)/n)*value + (1/float(n))*reward
     self.q_values[chosen_arm] = new_value

@@ -6,14 +6,10 @@ def argmax(arr):
 
 
 class EpsilonGreedy():
-  def __init__(self, epsilon: float, counts, q_values):
+  def __init__(self, epsilon: float, n_arms):
     self.epsilon = epsilon
-    self.counts = counts  # no. of times each arm has been pulled
-    self.q_values = q_values  # current Q-value of each arm
-
-  def initialize(self, n_arms: int):
-    self.counts = [0]*n_arms
-    self.q_values = [0.0]*n_arms
+    self.counts = [0]*n_arms  # no. of times each arm has been pulled
+    self.q_values = [0.0]*n_arms  # current Q-value of each arm
 
   def get_name(self):
     """Returns the name of this algorithm"""

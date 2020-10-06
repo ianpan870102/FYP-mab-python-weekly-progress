@@ -13,11 +13,7 @@ def weighted_draw(probs):
 
 
 class AnnealingSoftmax:
-  def __init__(self, counts, values):
-    self.counts = counts
-    self.values = values
-
-  def initialize(self, n_arms):
+  def __init__(self, n_arms):
     self.counts = [0 for col in range(n_arms)]
     self.values = [0.0 for col in range(n_arms)]
 

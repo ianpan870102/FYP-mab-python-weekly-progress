@@ -10,6 +10,7 @@ from algorithms.softmax.annealing_softmax import AnnealingSoftmax
 from algorithms.ucb.ucb1 import UCB1
 from algorithms.ucb.ucb_bayesian import UCB_Bayesian
 from algorithms.exp3.exp3 import Exp3
+import numpy as np
 
 from matplotlib import rcParams
 rcParams['font.family'] = ['Roboto']
@@ -105,14 +106,6 @@ def main():
   print(f'Optimal arm: #{argmax([arm.mu for arm in arms]) + 1}')
   change_of_distribution = False
 
-  # algo_epsilon = EpsilonGreedy(0.05, [], [])
-  # algo_anneal_epsilon = AnnealingEpsilonGreedy([], [])
-  # algo_ucb1 = UCB1()
-  # algo_ucb_bayesian = UCB_Bayesian(1.96, [], [])  # 95% confident
-  # algo_softmax = Softmax(.2, [], [])
-  # algo_anneal_softmax = AnnealingSoftmax([], [])
-  # algo_exp3 = Exp3(.2, [])
-
   algo_epsilon = EpsilonGreedy(0.05, n_arms)
   algo_anneal_epsilon = AnnealingEpsilonGreedy(n_arms)
   algo_ucb1 = UCB1(n_arms)
@@ -126,26 +119,29 @@ def main():
   algorithm_cum_rewards = []  # 2D list[algo][t] (array of cumulative rewards for each algo at time-step t)
   algorithm_arm_selections = []  # 2D list[algo][t] (array of arm selections for each algo at time-step t)
 
-  timesteps = 5000  # number of time-steps
+  # semi-global variables
+  timesteps = 1000  # number of time-steps (T)
+  total_iteration = 20  #outer-loop
+  reward_round_iteration = np.zeros((T), dtype=int)
 
   for algo in algorithms:
     avg_rewards, cum_rewards, arm_selections = [0], [0], []
 
-    for t in range(1, timesteps):
-      if change_of_distribution and t == timesteps/2:  # change distribution of rewards at half-time
-        arms = change_distribution()
-        print(f'Optimal arm: {argmax([arm.mu for arm in arms]) + 1}')
-        algo.initialize(len(arms))
-      chosen_arm = algo.select_arm()
-      arm_selections.append(chosen_arm + 1)  # convert 0-based index to 1-based
-      reward = arms[chosen_arm].draw_reward()
-      new_avg = (avg_rewards[-1]*(t - 1) + reward)/t  # new running avg.
-      avg_rewards.append(new_avg)
-      cum_rewards.append(new_avg*t)
-      algo.update(chosen_arm, reward)
-    algorithm_rewards.append(avg_rewards)
-    algorithm_cum_rewards.append(cum_rewards)
-    algorithm_arm_selections.append(arm_selections)
+    for i in range(total_iteration):
+      for t in range(1, timesteps):
+        chosen_arm = algo.select_arm()
+        arm_selections.append(chosen_arm + 1)  # convert 0-based index to 1-based
+        reward = arms[chosen_arm].draw_reward()
+        new_avg = (avg_rewards[-1]*(t - 1) + reward)/t  # new running avg.
+        avg_rewards.append(new_avg)
+        cum_rewards.append(new_avg*t)
+        algo.update(chosen_arm, reward)
+      algorithm_rewards.append(avg_rewards)
+      algorithm_cum_rewards.append(cum_rewards)
+      algorithm_arm_selections.append(arm_selections)
+
+      # resetting variables
+      arm_selections = []
 
   max_mu = max([arm.mu for arm in arms])
   max_cum_reward = max([algorithm_cum_rewards[i][-1] for i in range(len(algorithms))])

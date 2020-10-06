@@ -13,11 +13,8 @@ def weighted_draw(probs):
 
 
 class Exp3():
-  def __init__(self, gamma, weights):
+  def __init__(self, gamma, n_arms):
     self.gamma = gamma
-    self.weights = weights
-
-  def initialize(self, n_arms):
     self.weights = [1.0]*n_arms  # equally weighted
 
   def get_name(self):
