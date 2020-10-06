@@ -105,14 +105,6 @@ def main():
   print(f'Optimal arm: #{argmax([arm.mu for arm in arms]) + 1}')
   change_of_distribution = False
 
-  # algo_epsilon = EpsilonGreedy(0.05, [], [])
-  # algo_anneal_epsilon = AnnealingEpsilonGreedy([], [])
-  # algo_ucb1 = UCB1()
-  # algo_ucb_bayesian = UCB_Bayesian(1.96, [], [])  # 95% confident
-  # algo_softmax = Softmax(.2, [], [])
-  # algo_anneal_softmax = AnnealingSoftmax([], [])
-  # algo_exp3 = Exp3(.2, [])
-
   algo_epsilon = EpsilonGreedy(0.05, n_arms)
   algo_anneal_epsilon = AnnealingEpsilonGreedy(n_arms)
   algo_ucb1 = UCB1(n_arms)

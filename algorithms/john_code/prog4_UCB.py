@@ -40,15 +40,14 @@ for iteration_count in range(total_iteration):
     estimated_reward[select_arm]  = cumulative_reward[select_arm]/float(num_selected[select_arm]) +  \
              np.sqrt(np.log(round+1)/float(num_selected[select_arm]))
 
-    if current_reward == 1:
-      reward_round_iteration[round] += 1
+    reward_round_iteration[round] += current_reward
 
   # after one iteratoin, need to reset variables
   num_selected = np.zeros((Num_of_Arms), dtype=int)
   cumulative_reward = np.zeros((Num_of_Arms), dtype=float)
   estimated_reward = np.zeros((Num_of_Arms), dtype=float)
 
-# compute average reward for each  round
+# compute average reward for each iteration
 
 average_reward_in_each_round = np.zeros(T, dtype=float)
 
@@ -64,7 +63,6 @@ cumulative_reward = 0.0
 X = np.zeros(T, dtype=int)
 Y = np.zeros(T, dtype=float)
 # cumulative reward = (if you have a 0.9 chance of getting one, after 100 rounds is 100*0.9 = 90 )
-# Technically it is not true, it i
 for round in range(T):
   X[round] = round
   cumulative_optimal_reward += max_prob

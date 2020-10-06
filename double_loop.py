@@ -102,6 +102,7 @@ def main():
   arm9 = NormalArm(0.4, 1)
   arm10 = NormalArm(0.1, 1)
   arms = [arm1, arm2, arm3, arm4, arm5, arm6, arm7, arm8, arm9, arm10]
+  max_mu = max([arm.mu for arm in arms])
   n_arms = len(arms)
   print(f'Optimal arm: #{argmax([arm.mu for arm in arms]) + 1}')
   change_of_distribution = False
@@ -122,7 +123,7 @@ def main():
   # semi-global variables
   timesteps = 1000  # number of time-steps (T)
   total_iteration = 20  #outer-loop
-  reward_round_iteration = np.zeros((T), dtype=int)
+  reward_round_iteration = np.zeros((timesteps), dtype=int)
 
   for algo in algorithms:
     avg_rewards, cum_rewards, arm_selections = [0], [0], []
@@ -132,6 +133,7 @@ def main():
         chosen_arm = algo.select_arm()
         arm_selections.append(chosen_arm + 1)  # convert 0-based index to 1-based
         reward = arms[chosen_arm].draw_reward()
+        reward_round_iteration[t] += reward  # This persists over total_iterations
         new_avg = (avg_rewards[-1]*(t - 1) + reward)/t  # new running avg.
         avg_rewards.append(new_avg)
         cum_rewards.append(new_avg*t)
@@ -140,13 +142,34 @@ def main():
       algorithm_cum_rewards.append(cum_rewards)
       algorithm_arm_selections.append(arm_selections)
 
-      # resetting variables
+      # Resetting variable
       arm_selections = []
 
-  max_mu = max([arm.mu for arm in arms])
+    # Compute average rewards for each iteration
+    average_reward_in_each_round = np.zeros(timesteps, dtype=float)
+
+    # Calculate the values for one good 1000 rounds
+    # Squash 200X1000 -> 1X1000
+    for t in range(timesteps):
+      average_reward_in_each_round[t] = float(reward_round_iteration[t])/float(total_iteration)
+
+    cumulative_optimal_reward = 0.0
+    cumulative_reward = 0.0
+    x_axis = np.zeros(timesteps, dtype=int)
+    regrets = np.zeros(timesteps, dtype=float)  # regret for each round
+
+    for t in range(timesteps):
+      x_axis[t] = t
+      cumulative_optimal_reward += max_mu
+      cumulative_reward += average_reward_in_each_round[t]
+      regrets[t] = cumulative_optimal_reward - cumulative_reward
+
+    # print('After ', regret is: ', cumulative_optimal_reward - cumulative_reward)
+    print(f"The average regret for {algo.get_name()} is {cumulative_optimal_reward - cumulative_reward}")
+
   max_cum_reward = max([algorithm_cum_rewards[i][-1] for i in range(len(algorithms))])
   for i in range(len(algorithms)):
-    print(algorithms[i].get_name() + ":", f'{algorithm_cum_rewards[i][-1]:.2f}')
+    print(f"{algorithms[i].get_name()}: {algorithm_cum_rewards[i][-1]:.2f}")
 
   plot_graph(timesteps, arms, algorithms, algorithm_rewards, algorithm_cum_rewards, algorithm_arm_selections, max_mu,
              max_cum_reward, change_of_distribution)
