@@ -27,17 +27,14 @@ class AnnealingSoftmax:
 
   def select_arm(self):
     t = sum(self.counts) + 1
-    temperature = 1/math.log(t + 0.0000001)
-
-    z = sum([math.exp(v/temperature) for v in self.values])
-    probs = [math.exp(v/temperature)/z for v in self.values]
+    tau = 1/math.log(t + 0.0000001)
+    z = sum([math.exp(v/tau) for v in self.values])
+    probs = [math.exp(v/tau)/z for v in self.values]
     return weighted_draw(probs)
 
   def update(self, chosen_arm, reward):
     self.counts[chosen_arm] = self.counts[chosen_arm] + 1
     n = self.counts[chosen_arm]
-
     value = self.values[chosen_arm]
     new_value = ((n - 1)/float(n))*value + (1/float(n))*reward
     self.values[chosen_arm] = new_value
-    return
