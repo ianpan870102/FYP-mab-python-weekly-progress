@@ -20,11 +20,11 @@ class UCB1():
     for arm in range(n_arms):
       if self.counts[arm] == 0:
         return arm  # need to select every arm at least once before applying UCB1 formula
-    ucb_values = [0.0 for arm in range(n_arms)]
+    # ucb_values = [0.0 for arm in range(n_arms)]
     for arm in range(n_arms):
       confidence_interval = math.sqrt((2*math.log(sum(self.counts)))/float(self.counts[arm]))
-      ucb_values[arm] = self.q_values[arm] + confidence_interval
-    return argmax(ucb_values)
+      self.ucb_values[arm] = self.q_values[arm] + confidence_interval
+    return argmax(self.ucb_values)
 
   def update(self, chosen_arm, latest_reward):
     self.counts[chosen_arm] += 1

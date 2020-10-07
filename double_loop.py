@@ -26,6 +26,7 @@ def plot_regret(X, Y, cumulative_optimal_reward, cumulative_reward, average_rewa
   fig, axs = plt.subplots(2)  # get two figures, top is regret, bottom is average reward in each round
   fig.suptitle('Performance of UCB Arm Selection')
   fig.subplots_adjust(hspace=0.5)
+
   axs[0].plot(X, Y, color='red', label='Regret of UCB')
   axs[0].set(xlabel='round number', ylabel='Regret')
   axs[0].grid(True)
@@ -33,6 +34,7 @@ def plot_regret(X, Y, cumulative_optimal_reward, cumulative_reward, average_rewa
   axs[0].set_xlim(0, T)
   axs[0].set_ylim(0, 1.1*(cumulative_optimal_reward - cumulative_reward))
   axs[1].plot(X, average_reward_in_each_round, color='black', label='average reward')
+
   axs[1].set(xlabel='round number', ylabel='Average Reward per round')
   axs[1].grid(True)
   axs[1].legend(loc='lower right')
@@ -103,7 +105,7 @@ def main():
 
   arm1 = BernoulliArm(0.2)
   arm2 = BernoulliArm(0.3)
-  arm3 = BernoulliArm(0.85)
+  arm3 = BernoulliArm(0.2)
   arm4 = BernoulliArm(0.9)
   arms = [arm1, arm2, arm3, arm4]
   max_mu = max([arm.mu for arm in arms])
@@ -118,35 +120,39 @@ def main():
   algo_anneal_softmax = AnnealingSoftmax(n_arms)
   algo_exp3 = Exp3(.2, n_arms)
 
-  algorithms = [algo_ucb1]
+  algorithms = [algo_anneal_epsilon]
   algorithm_rewards = []  # 2D list[algo][t] (array of running avg. rewards for each algo at time-step t)
   algorithm_cum_rewards = []  # 2D list[algo][t] (array of cumulative rewards for each algo at time-step t)
   algorithm_arm_selections = []  # 2D list[algo][t] (array of arm selections for each algo at time-step t)
 
   # semi-global variables
   timesteps = 1000  # number of time-steps (T)
-  total_iteration = 200  # outer-loop
+  total_iteration = 10  # outer-loop
   reward_round_iteration = np.zeros((timesteps), dtype=int)
 
   for algo in algorithms:
     avg_rewards, cum_rewards, arm_selections = [0], [0], []
+    new_avg = 0
 
     for i in range(total_iteration):
-      for t in range(1, timesteps):
+      algo = AnnealingEpsilonGreedy(n_arms)  # reinitialize algorithm (clear previous memory)
+      for t in range(timesteps):  # NOTE: 0 based? 1 based?
         chosen_arm = algo.select_arm()
         arm_selections.append(chosen_arm + 1)  # convert 0-based index to 1-based
         reward = arms[chosen_arm].draw_reward()
         reward_round_iteration[t] += reward  # This persists over total_iterations
-        new_avg = (avg_rewards[-1]*(t - 1) + reward)/t  # new running avg.
+        if t != 0:
+          new_avg = (avg_rewards[-1]*(t - 1) + reward)/t  # new running avg.
         avg_rewards.append(new_avg)
-        cum_rewards.append(new_avg*t)
+        cum_rewards.append(new_avg*t)  # [1,1,0,1,1] [1,2,2,3,?], cur_avg=0.75, new_avg = 0.8
         algo.update(chosen_arm, reward)
-      algorithm_rewards.append(avg_rewards)
-      algorithm_cum_rewards.append(cum_rewards)
-      algorithm_arm_selections.append(arm_selections)
 
       # Resetting variable
       arm_selections = []
+
+    algorithm_rewards.append(avg_rewards)
+    algorithm_cum_rewards.append(cum_rewards)
+    algorithm_arm_selections.append(arm_selections)
 
     # Compute average rewards for each iteration
     average_reward_in_each_round = np.zeros(timesteps, dtype=float)
@@ -161,10 +167,13 @@ def main():
     x_axis = np.zeros(timesteps, dtype=int)
     regrets = np.zeros(timesteps, dtype=float)  # regret for each round
 
+    print(average_reward_in_each_round)
+
     for t in range(timesteps):
       x_axis[t] = t
       cumulative_optimal_reward += max_mu
       cumulative_reward += average_reward_in_each_round[t]
+      # print(f"{cumulative_optimal_reward} \t {cumulative_reward}")
       regrets[t] = cumulative_optimal_reward - cumulative_reward
 
     plot_regret(x_axis, regrets, cumulative_optimal_reward, cumulative_reward, average_reward_in_each_round, timesteps)
@@ -174,9 +183,9 @@ def main():
   for i in range(len(algorithms)):
     print(f"{algorithms[i].get_name()}: {algorithm_cum_rewards[i][-1]:.2f}")
 
-  plot_graph(timesteps, arms, algorithms, algorithm_rewards, algorithm_cum_rewards, algorithm_arm_selections, max_mu,
-             max_cum_reward)
-  plot_cum_rewards(algorithms, algorithm_cum_rewards, timesteps, max_cum_reward)
+  # plot_graph(timesteps, arms, algorithms, algorithm_rewards, algorithm_cum_rewards, algorithm_arm_selections, max_mu,
+  #            max_cum_reward)
+  # plot_cum_rewards(algorithms, algorithm_cum_rewards, timesteps, max_cum_reward)
 
 
 if __name__ == "__main__":
