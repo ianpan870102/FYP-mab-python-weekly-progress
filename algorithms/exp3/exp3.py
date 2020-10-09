@@ -2,6 +2,7 @@ import random
 import math
 
 
+# probs: [0.1, 0.1, 0.6, 0.2]
 def weighted_draw(probs):
   r = random.random()  # uniformly random between 0 and 1
   cumulative_prob = 0

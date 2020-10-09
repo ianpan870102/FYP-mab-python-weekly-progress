@@ -10,6 +10,7 @@ from algorithms.softmax.annealing_softmax import AnnealingSoftmax
 from algorithms.ucb.ucb1 import UCB1
 from algorithms.ucb.ucb_bayesian import UCB_Bayesian
 from algorithms.exp3.exp3 import Exp3
+from algorithms.thompson.thompson import ThompsonSampling
 
 from matplotlib import rcParams
 rcParams['font.family'] = ['Roboto']
@@ -90,17 +91,21 @@ def plot_cum_rewards(algorithms, algorithm_cum_rewards, timesteps, max_cum_rewar
 
 
 def main():
-  arm1 = NormalArm(0.2, 1)
-  arm2 = NormalArm(0.3, 1)
-  arm3 = NormalArm(0.4, 1)
-  arm4 = NormalArm(0.5, 1)
-  arm5 = NormalArm(0.6, 1)
-  arm6 = NormalArm(0.7, 1)
-  arm7 = NormalArm(0.6, 1)
-  arm8 = NormalArm(0.5, 1)
-  arm9 = NormalArm(0.4, 1)
-  arm10 = NormalArm(0.1, 1)
-  arms = [arm1, arm2, arm3, arm4, arm5, arm6, arm7, arm8, arm9, arm10]
+  # arm1 = NormalArm(0.2, 1)
+  # arm2 = NormalArm(0.3, 1)
+  # arm3 = NormalArm(0.4, 1)
+  # arm4 = NormalArm(0.5, 1)
+  # arm5 = NormalArm(0.6, 1)
+  # arm6 = NormalArm(0.7, 1)
+  # arm7 = NormalArm(0.6, 1)
+  # arm8 = NormalArm(0.5, 1)
+  # arm9 = NormalArm(0.4, 1)
+  # arm10 = NormalArm(0.1, 1)
+  arm1 = BernoulliArm(0.2)
+  arm2 = BernoulliArm(0.5)
+  arm3 = BernoulliArm(0.4)
+  arm4 = BernoulliArm(0.9)
+  arms = [arm1, arm2, arm3, arm4]
   n_arms = len(arms)
   print(f'Optimal arm: #{argmax([arm.mu for arm in arms]) + 1}')
   change_of_distribution = False
@@ -112,8 +117,9 @@ def main():
   algo_softmax = Softmax(.2, n_arms)
   algo_anneal_softmax = AnnealingSoftmax(n_arms)
   algo_exp3 = Exp3(.2, n_arms)
+  algo_thompson = ThompsonSampling(n_arms)
 
-  algorithms = [algo_softmax, algo_anneal_softmax, algo_exp3]
+  algorithms = [algo_epsilon, algo_ucb1, algo_thompson]
   algorithm_rewards = []  # 2D list[algo][t] (array of running avg. rewards for each algo at time-step t)
   algorithm_cum_rewards = []  # 2D list[algo][t] (array of cumulative rewards for each algo at time-step t)
   algorithm_arm_selections = []  # 2D list[algo][t] (array of arm selections for each algo at time-step t)
