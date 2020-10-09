@@ -10,6 +10,8 @@ from algorithms.softmax.annealing_softmax import AnnealingSoftmax
 from algorithms.ucb.ucb1 import UCB1
 from algorithms.ucb.ucb_bayesian import UCB_Bayesian
 from algorithms.exp3.exp3 import Exp3
+from algorithms.thompson.thompson import ThompsonSampling
+
 import numpy as np
 
 from matplotlib import rcParams
@@ -119,8 +121,9 @@ def main():
   algo_softmax = Softmax(.2, n_arms)
   algo_anneal_softmax = AnnealingSoftmax(n_arms)
   algo_exp3 = Exp3(.2, n_arms)
+  algo_thompson = ThompsonSampling(n_arms)
 
-  algorithms = [algo_anneal_epsilon]
+  algorithms = [algo_anneal_epsilon, algo_thompson]
   algorithm_rewards = []  # 2D list[algo][t] (array of running avg. rewards for each algo at time-step t)
   algorithm_cum_rewards = []  # 2D list[algo][t] (array of cumulative rewards for each algo at time-step t)
   algorithm_arm_selections = []  # 2D list[algo][t] (array of arm selections for each algo at time-step t)

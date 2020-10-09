@@ -29,4 +29,9 @@ class ThompsonSampling():
       self.reward_equal_to_1[chosen_arm] += 1
     else:
       self.reward_equal_to_0[chosen_arm] += 1
+
+    ## Potential way of dealing with normal arms? (kinda like the if-else we did above)
+    # self.reward_equal_to_1[chosen_arm] += latest_reward
+    # self.reward_equal_to_0[chosen_arm] += (1 - latest_reward)
+
     self.cum_reward += latest_reward
