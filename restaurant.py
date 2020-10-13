@@ -26,23 +26,23 @@ def argmax(arr):
 
 def plot_regret(X, Y, cumulative_optimal_reward, cumulative_reward, average_reward_in_each_round, T):
   fig, axs = plt.subplots(2)  # get two figures, top is regret, bottom is average reward in each round
-  fig.suptitle('Performance of UCB Arm Selection')
+  fig.suptitle('Graduate Students vs. Restaurants (Ch. 3 Exercise)')
   fig.subplots_adjust(hspace=0.5)
 
   axs[0].plot(X, Y, color='red', label='Regret of UCB')
-  axs[0].set(xlabel='round number', ylabel='Regret')
+  axs[0].set(xlabel='night', ylabel='Regret')
   axs[0].grid(True)
   axs[0].legend(loc='lower right')
   axs[0].set_xlim(0, T)
-  axs[0].set_ylim(0, 1.1*(cumulative_optimal_reward - cumulative_reward))
+  axs[0].set_ylim(0, 1.2*(cumulative_optimal_reward - cumulative_reward))  # TODO: graph can get out of bound
   axs[1].plot(X, average_reward_in_each_round, color='black', label='average reward')
 
-  axs[1].set(xlabel='round number', ylabel='Average Reward per round')
+  axs[1].set(xlabel='nights', ylabel='Average Reward per night')
   axs[1].grid(True)
   axs[1].legend(loc='lower right')
   axs[1].set_xlim(0, T)
   axs[1].set_ylim(0, 1.0)
-  plt.savefig("./figures/prog3_figure.png")
+  plt.savefig("./figures/restaurant_plot.png")
   plt.show()
 
 
@@ -68,7 +68,7 @@ def plot_graph(timesteps, arms, algorithms, algorithm_rewards, algorithm_cum_rew
     plt.axis([0, timesteps, 0, max_cum_reward])
 
     plt.subplot(3, num_of_algo, i + 1 + 2*num_of_algo)
-    plt.scatter(range(timesteps - 1), algorithm_arm_selections[i], s=.1, color='salmon', alpha=.5)
+    plt.scatter(range(timesteps), algorithm_arm_selections[i], s=.1, color='salmon', alpha=.5)
     plt.axis([0, timesteps, 0, len(arms) + 1])
     plt.xlabel('Time-step t', fontsize=12)
     plt.ylabel(f'{algo.get_name()}\'s arm selection', fontsize=12)
@@ -143,14 +143,16 @@ def main():
   # semi-global variables
   timesteps = T
   total_iteration = 1  # outer-loop
-  reward_round_iteration = np.zeros((timesteps), dtype=int)
+  reward_round_iteration = np.zeros((timesteps), dtype=float)
 
   for algo in algorithms:
     avg_rewards, cum_rewards, arm_selections = [0], [0], []
     new_avg = 0
 
     for i in range(total_iteration):  # one graduate student, no need to average preference
-      algo = AnnealingEpsilonGreedy(n_arms)  # reinitialize algorithm (clear previous memory)
+      # TODO: reinitialize algo dynamically based on algo type
+      # algo = get_type(algo).reinit()# pseudocode
+      algo = UCB1(n_arms)  # reinitialize algorithm (clear previous memory)
       for t in range(timesteps):  # NOTE: 0 based? 1 based?
         chosen_arm = algo.select_arm()
         arm_selections.append(chosen_arm + 1)  # convert 0-based index to 1-based
@@ -164,11 +166,11 @@ def main():
         algo.update(chosen_arm, reward)
 
       # Resetting variable
+      algorithm_arm_selections.append(arm_selections)  # NOTE: scatter plots can be overwritten
       arm_selections = []
 
     algorithm_rewards.append(avg_rewards)
     algorithm_cum_rewards.append(cum_rewards)
-    algorithm_arm_selections.append(arm_selections)
 
     # Compute average rewards for each iteration
     average_reward_in_each_round = np.zeros(timesteps, dtype=float)
@@ -201,8 +203,8 @@ def main():
   for i in range(len(algorithms)):
     print(f"{algorithms[i].get_name()}: {algorithm_cum_rewards[i][-1]:.2f}")
 
-  # plot_graph(timesteps, arms, algorithms, algorithm_rewards, algorithm_cum_rewards, algorithm_arm_selections, max_mu,
-  #            max_cum_reward)
+  plot_graph(timesteps, arms, algorithms, algorithm_rewards, algorithm_cum_rewards, algorithm_arm_selections, max_mu,
+             max_cum_reward)
   # plot_cum_rewards(algorithms, algorithm_cum_rewards, timesteps, max_cum_reward)
 
 
