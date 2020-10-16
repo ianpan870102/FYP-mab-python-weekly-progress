@@ -149,12 +149,14 @@ def main():
   timesteps = T
   total_iteration = 3  # outer-loop
   reward_round_iteration = np.zeros((timesteps), dtype=float)
+  arm_selection_count = []
 
   for j, algo in enumerate(algorithms):
-    avg_rewards, cum_rewards, arm_selections = [0], [0], []
+    avg_rewards, cum_rewards = [0], [0]
     new_avg = 0
 
     for i in range(total_iteration):  # one graduate student, no need to average preference
+      arm_selections = []
       # TODO: reinitialize algo dynamically based on algo type
       # algo = get_type(algo).reinit()  # pseudocode
       algo = UCB1(n_arms)  # reinitialize algorithm (clear previous memory)
@@ -171,9 +173,7 @@ def main():
         cum_rewards.append(new_avg*t)
         algo.update(chosen_arm, reward)
 
-      # Resetting variable
       algorithm_arm_selections[j].append(arm_selections)  # NOTE: scatter plots can be overwritten
-      arm_selections = []
 
     algorithm_rewards.append(avg_rewards)
     algorithm_cum_rewards.append(cum_rewards)
