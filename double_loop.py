@@ -24,9 +24,9 @@ def argmax(arr):
   return arr.index(max(arr))
 
 
-def plot_regret(X, Y, cumulative_optimal_reward, cumulative_reward, average_reward_in_each_round, T):
+def plot_regret(X, Y, cumulative_optimal_reward, cumulative_reward, average_reward_in_each_round, T, algo_name):
   fig, axs = plt.subplots(2)  # get two figures, top is regret, bottom is average reward in each round
-  fig.suptitle('Performance of UCB Arm Selection')
+  fig.suptitle(f'Performance of {algo_name} Arm Selection')
   fig.subplots_adjust(hspace=0.5)
 
   axs[0].plot(X, Y, color='red', label='Regret of UCB')
@@ -106,10 +106,15 @@ def main():
   # arm10 = NormalArm(0.1, 1)
 
   arm1 = BernoulliArm(0.2)
-  arm2 = BernoulliArm(0.3)
-  arm3 = BernoulliArm(0.2)
-  arm4 = BernoulliArm(0.9)
-  arms = [arm1, arm2, arm3, arm4]
+  arm2 = BernoulliArm(0.5)
+  arm3 = BernoulliArm(0.9)
+  arm4 = BernoulliArm(0.4)
+  arm5 = BernoulliArm(0.4)
+  arm6 = BernoulliArm(0.3)
+  arm7 = BernoulliArm(0.2)
+  arm8 = BernoulliArm(0.1)
+  arms = [arm1, arm2, arm3, arm4, arm5, arm6, arm7, arm8]
+
   max_mu = max([arm.mu for arm in arms])
   n_arms = len(arms)
   print(f'Optimal arm: #{argmax([arm.mu for arm in arms]) + 1}')
@@ -123,22 +128,24 @@ def main():
   algo_exp3 = Exp3(.2, n_arms)
   algo_thompson = ThompsonSampling(n_arms)
 
-  algorithms = [algo_anneal_epsilon, algo_thompson]
+  algorithms = [algo_ucb1]
   algorithm_rewards = []  # 2D list[algo][t] (array of running avg. rewards for each algo at time-step t)
   algorithm_cum_rewards = []  # 2D list[algo][t] (array of cumulative rewards for each algo at time-step t)
   algorithm_arm_selections = []  # 2D list[algo][t] (array of arm selections for each algo at time-step t)
 
   # semi-global variables
   timesteps = 1000  # number of time-steps (T)
-  total_iteration = 10  # outer-loop
+  total_iteration = 1  # outer-loop
   reward_round_iteration = np.zeros((timesteps), dtype=int)
 
   for algo in algorithms:
+    print(algo.get_name())
     avg_rewards, cum_rewards, arm_selections = [0], [0], []
     new_avg = 0
 
     for i in range(total_iteration):
-      algo = AnnealingEpsilonGreedy(n_arms)  # reinitialize algorithm (clear previous memory)
+      # TODO: reinitialize this DYNAMICALLY!!
+      algo = UCB1(n_arms)  # reinitialize algorithm (clear previous memory)
       for t in range(timesteps):  # NOTE: 0 based? 1 based?
         chosen_arm = algo.select_arm()
         arm_selections.append(chosen_arm + 1)  # convert 0-based index to 1-based
@@ -170,7 +177,7 @@ def main():
     x_axis = np.zeros(timesteps, dtype=int)
     regrets = np.zeros(timesteps, dtype=float)  # regret for each round
 
-    print(average_reward_in_each_round)
+    # print(average_reward_in_each_round)
 
     for t in range(timesteps):
       x_axis[t] = t
@@ -179,7 +186,7 @@ def main():
       # print(f"{cumulative_optimal_reward} \t {cumulative_reward}")
       regrets[t] = cumulative_optimal_reward - cumulative_reward
 
-    plot_regret(x_axis, regrets, cumulative_optimal_reward, cumulative_reward, average_reward_in_each_round, timesteps)
+    plot_regret(x_axis, regrets, cumulative_optimal_reward, cumulative_reward, average_reward_in_each_round, timesteps, algo.get_name())
     print(f"The average regret for {algo.get_name()} is {cumulative_optimal_reward - cumulative_reward}")
 
   max_cum_reward = max([algorithm_cum_rewards[i][-1] for i in range(len(algorithms))])
