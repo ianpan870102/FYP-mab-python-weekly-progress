@@ -24,7 +24,8 @@ def argmax(arr):
   return arr.index(max(arr))
 
 
-def plot_regret(X, Y, cumulative_optimal_reward, cumulative_reward, average_reward_in_each_round, T):
+def plot_regret(X, Y, cumulative_optimal_reward, cumulative_reward, average_reward_in_each_round, T, max_regret,
+                min_regret, max_avg_reward, min_avg_reward):
   fig, axs = plt.subplots(2)  # get two figures, top is regret, bottom is average reward in each round
   fig.suptitle('Graduate Students vs. Restaurants (Ch. 3 Exercise)')
   fig.subplots_adjust(hspace=0.5)
@@ -34,16 +35,21 @@ def plot_regret(X, Y, cumulative_optimal_reward, cumulative_reward, average_rewa
   axs[0].grid(True)
   axs[0].legend(loc='lower right')
   axs[0].set_xlim(0, T)
-  axs[0].set_ylim(0, 1.2*(cumulative_optimal_reward - cumulative_reward))  # TODO: graph can get out of bound
+
+  axs[0].set_ylim(min_regret, 1.1*max_regret)  # TODO: graph can get out of bound
   axs[1].plot(X, average_reward_in_each_round, color='black', label='average reward')
 
   axs[1].set(xlabel='nights', ylabel='Average Reward per night')
   axs[1].grid(True)
   axs[1].legend(loc='lower right')
   axs[1].set_xlim(0, T)
+<<<<<<< HEAD
   axs[1].set_ylim(0, 1.0)
 
   print(f"You will now see the regret/reward over the next {T} days")
+=======
+  axs[1].set_ylim(min_avg_reward, 1.1*max_avg_reward)
+>>>>>>> e9acb063f4bec22d76def71e524db04c030160fb
   plt.savefig("./figures/restaurant_plot.png")
   plt.show()
   print("Thank you and good-bye.")
@@ -71,7 +77,7 @@ def plot_graph(timesteps, arms, algorithms, algorithm_rewards, algorithm_cum_rew
     plt.axis([0, timesteps, 0, max_cum_reward])
 
     plt.subplot(3, num_of_algo, i + 1 + 2*num_of_algo)
-    plt.scatter(range(timesteps), algorithm_arm_selections[i], s=.1, color='salmon', alpha=.5)
+    plt.scatter(range(timesteps), algorithm_arm_selections[i], s=2.5, color='salmon', alpha=.9)
     plt.axis([0, timesteps, 0, len(arms) + 1])
     plt.xlabel('Time-step t', fontsize=12)
     plt.ylabel(f'{algo.get_name()}\'s arm selection', fontsize=12)
@@ -143,24 +149,28 @@ def main():
   algorithms = [algo_ucb1]
   algorithm_rewards = []  # 2D list[algo][t] (array of running avg. rewards for each algo at time-step t)
   algorithm_cum_rewards = []  # 2D list[algo][t] (array of cumulative rewards for each algo at time-step t)
-  algorithm_arm_selections = []  # 2D list[algo][t] (array of arm selections for each algo at time-step t)
+
+  # 3D list[algo][i][t] (array of arm selections for each algo at time-step t of outer loop i)
+  algorithm_arm_selections = [[]]  # index [0][0]
+  # x = [[foo for i in range(1)] for j in range(1)]
 
   # semi-global variables
   timesteps = T
-  total_iteration = 1  # outer-loop
+  total_iteration = 3  # outer-loop
   reward_round_iteration = np.zeros((timesteps), dtype=float)
 
-  for algo in algorithms:
+  for j, algo in enumerate(algorithms):
     avg_rewards, cum_rewards, arm_selections = [0], [0], []
     new_avg = 0
 
     for i in range(total_iteration):  # one graduate student, no need to average preference
       # TODO: reinitialize algo dynamically based on algo type
-      # algo = get_type(algo).reinit()# pseudocode
+      # algo = get_type(algo).reinit()  # pseudocode
       algo = UCB1(n_arms)  # reinitialize algorithm (clear previous memory)
       for t in range(timesteps):  # NOTE: 0 based? 1 based?
         chosen_arm = algo.select_arm()
         arm_selections.append(chosen_arm + 1)  # convert 0-based index to 1-based
+        # TODO: create a list to keep track of arm selected (count)
         reward = arms[chosen_arm].draw_reward()
         # print("reward is ", reward)
         reward_round_iteration[t] += reward  # This persists over total_iterations
@@ -171,7 +181,7 @@ def main():
         algo.update(chosen_arm, reward)
 
       # Resetting variable
-      algorithm_arm_selections.append(arm_selections)  # NOTE: scatter plots can be overwritten
+      algorithm_arm_selections[j].append(arm_selections)  # NOTE: scatter plots can be overwritten
       arm_selections = []
 
     algorithm_rewards.append(avg_rewards)
@@ -199,8 +209,9 @@ def main():
       cumulative_optimal_reward += max_mu
       cumulative_reward += average_reward_in_each_round[t]
       # print(f"{cumulative_optimal_reward} \t {cumulative_reward}")
-      regrets[t] = cumulative_optimal_reward - cumulative_reward
+      regrets[t] = max(0, cumulative_optimal_reward - cumulative_reward)
 
+<<<<<<< HEAD
     plot_regret(x_axis, regrets, cumulative_optimal_reward, cumulative_reward, average_reward_in_each_round, timesteps)
     # print(f"The average regret for {algo.get_name()} is {cumulative_optimal_reward - cumulative_reward}")
 
@@ -211,6 +222,27 @@ def main():
   # TODO: WIP
   # plot_graph(timesteps, arms, algorithms, algorithm_rewards, algorithm_cum_rewards, algorithm_arm_selections, max_mu,
   #            max_cum_reward)
+=======
+    plot_regret(x_axis, regrets, cumulative_optimal_reward, cumulative_reward, average_reward_in_each_round, timesteps,
+                max(regrets), min(regrets), max(average_reward_in_each_round), min(average_reward_in_each_round))
+    print(f"The average regret for {algo.get_name()} is {cumulative_optimal_reward - cumulative_reward}")
+
+  max_cum_reward = max([algorithm_cum_rewards[i][-1] for i in range(len(algorithms))])
+  for i in range(len(algorithms)):
+    print(f"{algorithms[i].get_name()}: {algorithm_cum_rewards[i][-1]:.2f}")
+  print("This is arms selections", algorithm_arm_selections)
+
+  # Squash algorithm_arm_selections from [algo][i][t] -> [algo][t]
+  # algorithm_average_arm_selections[j][t] -> for algorithm j, timestep t: [.2, .1, .5, .2] <- count of each arm / total_iterations
+  algorithm_average_arm_selections = [[]]
+  for j, algo in enumerate(algorithms):
+    for i in range(total_iteration):
+      for t in range(timesteps):
+        algorithm_average_arm_selections[j][t] = float(algorithm_arm_selections[j][i][t])/float(total_iteration)
+
+  plot_graph(timesteps, arms, algorithms, algorithm_rewards, algorithm_cum_rewards, algorithm_average_arm_selections,
+             max_mu, max_cum_reward)
+>>>>>>> e9acb063f4bec22d76def71e524db04c030160fb
   # plot_cum_rewards(algorithms, algorithm_cum_rewards, timesteps, max_cum_reward)
 
 
