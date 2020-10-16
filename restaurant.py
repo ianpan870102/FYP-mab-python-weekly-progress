@@ -42,8 +42,11 @@ def plot_regret(X, Y, cumulative_optimal_reward, cumulative_reward, average_rewa
   axs[1].legend(loc='lower right')
   axs[1].set_xlim(0, T)
   axs[1].set_ylim(0, 1.0)
+
+  print(f"You will now see the regret/reward over the next {T} days")
   plt.savefig("./figures/restaurant_plot.png")
   plt.show()
+  print("Thank you and good-bye.")
 
 
 def plot_graph(timesteps, arms, algorithms, algorithm_rewards, algorithm_cum_rewards, algorithm_arm_selections, max_mu,
@@ -101,13 +104,15 @@ def get_inputs():
   for i in range(N):
     restaurant_names.append(input(f"Enter restaurant #{i+1} name: "))
 
-  ans = input("Do you know these restaurants well? [y/n]")
+  ans = input("Do you have the average ratings of these restaurants (Google Maps, OpenRice)? [y/n]: ")
   flag = True if ans.lower() == 'y' else False
 
   ratings = []  # act as mu later for arms
   if flag:
     for i in range(N):
       ratings.append(float(input(f"Please rate {restaurant_names[i]} between 0 and 1: ")))
+  else:
+    print("That's fine, we'll randomly initialise the restaurant ratings for you.")
 
   return N, T, flag, restaurant_names, ratings
 
@@ -124,7 +129,7 @@ def main():
   max_mu = max([arm.mu for arm in arms])
   n_arms = len(arms)
   optimal_index = argmax([arm.mu for arm in arms])
-  print(f'Best restaurant:, {restaurant_names[optimal_index]} (#{optimal_index + 1})')
+  print(f'Best restaurant: {restaurant_names[optimal_index]} (#{optimal_index + 1})')
 
   algo_epsilon = EpsilonGreedy(0.05, n_arms)
   algo_anneal_epsilon = AnnealingEpsilonGreedy(n_arms)
@@ -175,7 +180,7 @@ def main():
     # Compute average rewards for each iteration
     average_reward_in_each_round = np.zeros(timesteps, dtype=float)
 
-    print(reward_round_iteration)
+    # print(reward_round_iteration)
 
     # Calculate the values for one good 1000 rounds
     # Squash 200X1000 -> 1X1000
@@ -187,7 +192,7 @@ def main():
     x_axis = np.zeros(timesteps, dtype=int)
     regrets = np.zeros(timesteps, dtype=float)  # regret for each round
 
-    print("Average reward in each round:", average_reward_in_each_round)
+    # print("Average reward in each round:", average_reward_in_each_round)
 
     for t in range(timesteps):
       x_axis[t] = t
@@ -197,14 +202,15 @@ def main():
       regrets[t] = cumulative_optimal_reward - cumulative_reward
 
     plot_regret(x_axis, regrets, cumulative_optimal_reward, cumulative_reward, average_reward_in_each_round, timesteps)
-    print(f"The average regret for {algo.get_name()} is {cumulative_optimal_reward - cumulative_reward}")
+    # print(f"The average regret for {algo.get_name()} is {cumulative_optimal_reward - cumulative_reward}")
 
   max_cum_reward = max([algorithm_cum_rewards[i][-1] for i in range(len(algorithms))])
-  for i in range(len(algorithms)):
-    print(f"{algorithms[i].get_name()}: {algorithm_cum_rewards[i][-1]:.2f}")
+  # for i in range(len(algorithms)):
+  #   print(f"{algorithms[i].get_name()}: {algorithm_cum_rewards[i][-1]:.2f}")
 
-  plot_graph(timesteps, arms, algorithms, algorithm_rewards, algorithm_cum_rewards, algorithm_arm_selections, max_mu,
-             max_cum_reward)
+  # TODO: WIP
+  # plot_graph(timesteps, arms, algorithms, algorithm_rewards, algorithm_cum_rewards, algorithm_arm_selections, max_mu,
+  #            max_cum_reward)
   # plot_cum_rewards(algorithms, algorithm_cum_rewards, timesteps, max_cum_reward)
 
 

@@ -103,9 +103,13 @@ def main():
   # arm10 = NormalArm(0.1, 1)
   arm1 = BernoulliArm(0.2)
   arm2 = BernoulliArm(0.5)
-  arm3 = BernoulliArm(0.4)
-  arm4 = BernoulliArm(0.9)
-  arms = [arm1, arm2, arm3, arm4]
+  arm3 = BernoulliArm(0.9)
+  arm4 = BernoulliArm(0.4)
+  arm5 = BernoulliArm(0.4)
+  arm6 = BernoulliArm(0.3)
+  arm7 = BernoulliArm(0.2)
+  arm8 = BernoulliArm(0.1)
+  arms = [arm1, arm2, arm3, arm4, arm5, arm6, arm7, arm8]
   n_arms = len(arms)
   print(f'Optimal arm: #{argmax([arm.mu for arm in arms]) + 1}')
   change_of_distribution = False
