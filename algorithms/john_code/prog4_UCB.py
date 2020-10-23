@@ -17,7 +17,7 @@ optimal_arm = 3  # index for the optimal arm
 T = 1000  # number of rounds to simulate
 total_iteration = 10  # number of iterations to the MAB simulation
 
-reward_round_iteration = np.zeros((T), dtype=int)  # reward in each round average by # of iteration
+algorithm_timestep_reward_stacked = np.zeros((T), dtype=int)  # reward in each round average by # of iteration
 
 num_selected = np.zeros((Num_of_Arms), dtype=int)  # track # of times selected for each arm
 cumulative_reward = np.zeros((Num_of_Arms), dtype=float)  # track cumulative reward for each arm
@@ -26,26 +26,26 @@ estimated_reward = np.zeros((Num_of_Arms), dtype=float)  # track estimate reward
 # Go through T rounds, each round we need to select an arm
 
 for iteration_count in range(total_iteration):
-  for round in range(T):
-    if round < Num_of_Arms:
-      select_arm = round  # select round sequentially
-    else:  # select the best estimated arm so far
-      select_arm = np.argmax(estimated_reward)
+    for round in range(T):
+        if round < Num_of_Arms:
+            select_arm = round  # select round sequentially
+        else:  # select the best estimated arm so far
+            select_arm = np.argmax(estimated_reward)
 
-    # generate reward and update the variables
-    current_reward = bernoulli.rvs(winning_parameters[select_arm])
-    num_selected[select_arm] += 1  # how many times each arm has been selected (equiv. to our self.counts)
-    cumulative_reward[select_arm] += float(current_reward)
-    # compute UCB estimate. Note that we need to do log(round +1) because round starts with 0
-    estimated_reward[select_arm]  = cumulative_reward[select_arm]/float(num_selected[select_arm]) +  \
-             np.sqrt(2*np.log(round+1)/float(num_selected[select_arm]))
+        # generate reward and update the variables
+        current_reward = bernoulli.rvs(winning_parameters[select_arm])
+        num_selected[select_arm] += 1  # how many times each arm has been selected (equiv. to our self.counts)
+        cumulative_reward[select_arm] += float(current_reward)
+        # compute UCB estimate. Note that we need to do log(round +1) because round starts with 0
+        estimated_reward[select_arm]  = cumulative_reward[select_arm]/float(num_selected[select_arm]) +  \
+                 np.sqrt(2*np.log(round+1)/float(num_selected[select_arm]))
 
-    reward_round_iteration[round] += current_reward
+        algorithm_timestep_reward_stacked[round] += current_reward
 
-  # after one iteration, need to reset variables
-  num_selected = np.zeros((Num_of_Arms), dtype=int)
-  cumulative_reward = np.zeros((Num_of_Arms), dtype=float)
-  estimated_reward = np.zeros((Num_of_Arms), dtype=float)
+    # after one iteration, need to reset variables
+    num_selected = np.zeros((Num_of_Arms), dtype=int)
+    cumulative_reward = np.zeros((Num_of_Arms), dtype=float)
+    estimated_reward = np.zeros((Num_of_Arms), dtype=float)
 
 # compute average reward for each iteration
 
@@ -53,7 +53,7 @@ average_reward_in_each_round = np.zeros(T, dtype=float)
 
 # The max value in average_reward_round can only be 1 (eg:
 for round in range(T):
-  average_reward_in_each_round[round] = float(reward_round_iteration[round])/float(total_iteration)
+    average_reward_in_each_round[round] = float(algorithm_timestep_reward_stacked[round])/float(total_iteration)
 
 # Let generate X and Y data points to plot it out
 
@@ -67,11 +67,11 @@ print(average_reward_in_each_round)
 
 # cumulative reward = (if you have a 0.9 chance of getting one, after 100 rounds is 100*0.9 = 90 )
 for round in range(T):
-  X[round] = round
-  cumulative_optimal_reward += max_prob
-  cumulative_reward += average_reward_in_each_round[round]
-  # print(f"{cumulative_optimal_reward} \t {cumulative_reward}")
-  Y[round] = cumulative_optimal_reward - cumulative_reward
+    X[round] = round
+    cumulative_optimal_reward += max_prob
+    cumulative_reward += average_reward_in_each_round[round]
+    # print(f"{cumulative_optimal_reward} \t {cumulative_reward}")
+    Y[round] = cumulative_optimal_reward - cumulative_reward
 
 #After 200 1000 rounds
 print('After ', T, 'rounds, regret is: ', cumulative_optimal_reward - cumulative_reward)
