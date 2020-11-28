@@ -46,67 +46,63 @@ def updateOptimalPrices():
 def main():
     # curr_price = random.choice(cand_prices)
     curr_price = cand_prices[0]
-    print("Revenue matrix\n", revenue_matrix)
-    print("------------------------------------->")
+
     # MAB phase
     prev_i = -1
     rev_diff_matrix = np.zeros(shape=(N, C), dtype=int)
 
     # T is 1-index based
     for t in range(1, T + 1):
+        print("T:", t)
+        print("Revenue matrix\n", revenue_matrix)
+        print("------------------------------------->")
         x[t] = observed_demand[t]
+        # update optimal price after updating demand and revenue matrices?
+        opt_prices_list = updateOptimalPrices()
+        print("Optimal price list", opt_prices_list)
+
+        # if t = 0, we use random.choice() price
+        # otherwise, choose optimal price of prev_i chosen from previous round
+        if t > 1:
+            # set curr_price to optimal price of competitor i chosen from previous round
+            curr_price = opt_prices_list[prev_i]
+            # index ofprice we chose
+            cand_num = cand_prices.index(curr_price)
+        # get index when t = 0
+        cand_num = cand_prices.index(curr_price)
+        print("Current price", curr_price)
         curr_revenue = curr_price*x[t]
         print("Curr revernue", curr_revenue)
         print("About to print avg_rev_matrix")
-        # update optimal price after updating demand and revenue matrices?
-        opt_prices_list = updateOptimalPrices()
-        if t == 1:
-            # calculate revenue difference
-            for i in range(N):
-                for j in range(C):
-                    # improve fetching of price to find revenue
-                    # print(revenue_matrix[i][j][0])
-                    # avg_revenue = np.sum(revenue_matrix[i][j])/revenue_matrix[i][j].shape
-                    # print(avg_revenue)
-                    rev_diff_matrix[i][j] = revenue_matrix[i][j][0] - curr_revenue
-                    # print("Price difference", i, j, rev_diff_matrix[i][j])
-            # min_diff = np.amin(rev_diff_matrix)
-            min_index = np.argmin(rev_diff_matrix)
-            # Update the average revenue
-            # This is an array of existing revenues
+        # calculate revenue difference for chosen cand_num (Need to fix range)
+        for i in range(N):
+            for j in range(C):
+                # improve fetching of price to find revenue
+                rev_diff_matrix[i][j] = revenue_matrix[i][j][0] - curr_revenue
+                # print("Price difference", i, j, rev_diff_matrix[i][j])
+        # min_diff = np.amin(rev_diff_matrix)
+        min_index = np.argmin(rev_diff_matrix)
 
-            # index of revenue_matrix to upload
-            # we have to use shape of rev_diff_matrix because we use that matrix's min index
-            upd_index = np.unravel_index(min_index, rev_diff_matrix.shape)
-            comp_i = upd_index[0]
-            prev_i = comp_i
-            # set curr_price to optimal price of competitor i
-            curr_price = opt_prices_list[comp_i]
-            cand_num = curr_price
-        else:
-            print("This is before updating array", revenue_matrix[upd_index])
+        # index of revenue_matrix to update
+        # we have to use shape of rev_diff_matrix because we use that matrix's min index
+        upd_index = np.unravel_index(min_index, rev_diff_matrix.shape)
+        # which competitor we chose
+        comp_i = upd_index[0]
+        prev_i = comp_i
+        print("Prev_Competitor", prev_i)
+        if t > 1:
+            print("This is before appending to array", revenue_matrix[upd_index])
             # append observed revenue
             revenue_matrix[upd_index][t] = curr_revenue
 
-            print("This is after updating array", revenue_matrix[upd_index])
+            print("This is after appending to array", revenue_matrix[upd_index])
             # not sure why we need in pseudocode
             avg_r_curr_price = np.sum(revenue_matrix[upd_index])/np.count_nonzero(revenue_matrix[upd_index])
 
             # Update dm, rm, optimal price according to lastest observed demand & revenue
-            # which competitor we chose
-            prev_i = opt_prices_list.index(curr_price)
-            # which price we chose
-            cand_num = cand_prices.index(curr_price)
-
             demand_matrix[prev_i][cand_num] = (demand_matrix[prev_i][cand_num] + x[t])/2
             revenue_matrix[prev_i][cand_num] = demand_matrix[prev_i][cand_num]*curr_price
             opt_prices_list = updateOptimalPrices()
-
-            # chosen_competitor =
-
-            # print(min_diff)
-            # print(min_index)
-            # print(rev_diff_matrix)
 
 
 if __name__ == "__main__":
