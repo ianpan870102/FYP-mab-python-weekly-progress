@@ -1,0 +1,100 @@
+import random
+import numpy as np
+import random
+from arms.bernoulli import BernoulliArm
+from arms.normal import NormalArm
+from algorithms.new_algorithm.new_algorithm import new_algorithm
+
+# Initialisation and Preprocess phase
+cand_prices = [5, 6, 7, 8]
+T = 5
+demand_dict = {"c1": [110, 105, 100, 95], "c2": [120, 89, 85, 81], "c3": [100, 90, 60, 50]}
+demand_matrix = np.array([demand_dict[competitor] for competitor in demand_dict.keys()])
+# competitors, prices are 0-index based
+N = demand_matrix.shape[0]
+C = demand_matrix.shape[1]
+
+# The 3rd parameter sohuldn't be static
+revenue_matrix = np.zeros(shape=(N, C, T), dtype=int)
+
+# fill revenue matrix
+for i in range(N):
+    for j in range(C):
+        # imporve fetching of price to find revenue
+        revenue_matrix[i][j][0] = demand_matrix[i][j]*cand_prices[j]
+
+x = np.zeros(T, dtype=int)
+curr_price = random.choice(cand_prices)
+# This is not a good way of recording observer_demand (must be dynamic)
+observed_demand = [112, 64, 88, 74, 80]
+avg_rev_matrix = np.zeros(shape=(N, C), dtype=int)
+
+
+def updateOptimalPrices():
+    opt_prices = []
+    for i in range(N):
+        for j in range(C):
+            avg_rev_matrix[i][j] = np.sum(revenue_matrix[i][j])/np.count_nonzero(revenue_matrix[i][j])
+    for i in range(N):
+        idx = np.argmax(avg_rev_matrix[i])
+        opt_prices.append(cand_prices[idx])
+    return opt_prices
+
+
+def main():
+    print("Revenue matrix\n", revenue_matrix)
+    print("------------------------------------->")
+    # MAB phase
+    prev_i = -1
+
+    # T is 1-index based
+    for t in range(1, T + 1):
+        print("About to print avg_rev_matrix")
+        opt_prices_list = updateOptimalPrices()
+        if t == 1:
+            # used to update revenue_matrix
+            temp_list = []
+            rev_diff_matrix = np.zeros(shape=(N, C), dtype=int)
+            x[t] = observed_demand[t]
+            curr_revenue = curr_price*x[t]
+            print("Curr revernue", curr_revenue)
+            # calculate revenue difference
+            for i in range(N):
+                for j in range(C):
+                    # improve fetching of price to find revenue
+                    # print(revenue_matrix[i][j][0])
+                    # avg_revenue = np.sum(revenue_matrix[i][j])/revenue_matrix[i][j].shape
+                    # print(avg_revenue)
+                    rev_diff_matrix[i][j] = revenue_matrix[i][j][0] - curr_revenue
+                    # print("Price difference", i, j, rev_diff_matrix[i][j])
+            min_diff = np.amin(rev_diff_matrix)
+            min_index = np.argmin(rev_diff_matrix)
+            # Update the average revenue
+            # This is an array of existing revenues
+
+            # index of revenue_matrix to upload
+            # we have to use shape of rev_diff_matrix because we use that matrix's min index
+            upd_index = np.unravel_index(min_index, rev_diff_matrix.shape)
+            print("This is before updating array", revenue_matrix[upd_index])
+            # append observed revenue
+            revenue_matrix[upd_index][t] = curr_revenue
+
+            print("This is after updating array", revenue_matrix[upd_index])
+
+            avg_r_curr_price = np.sum(revenue_matrix[upd_index])/np.count_nonzero(revenue_matrix[upd_index])
+
+            # Update dm, rm, optimal price according to lastest observed demand & revenue
+
+            # which competitor we chose
+            prev_i = opt_prices_list.index(curr_price)
+            # which price we chose
+            cand_num = cand_prices.index(curr_price)
+
+            demand_matrix[prev_i][cand_num] = (demand_matrix[prev_i][cand_num] + x[t])/2
+            # print(min_diff)
+            # print(min_index)
+            # print(rev_diff_matrix)
+
+
+if __name__ == "__main__":
+    main()
