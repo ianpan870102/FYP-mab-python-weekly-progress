@@ -52,7 +52,7 @@ def plot_regret(X, Y, cumulative_optimal_reward, cumulative_reward, average_rewa
 
 
 def plot_graph(timesteps, arms, algorithms, average_reward_in_each_round, average_cum_rewards, algorithm_arm_selections,
-               algorithm_average_arm_selections, max_avg_reward, min_avg_reward, max_cum_reward, N, T):
+               algorithm_average_arm_selections, max_avg_reward, min_avg_reward, max_cum_reward, N, T, restaurant_names):
     """Plot a 3-row k-column graph with rolling average, cumulative reward and arm selection scatter plot."""
 
     num_of_algo = len(algorithms)
@@ -85,6 +85,7 @@ def plot_graph(timesteps, arms, algorithms, average_reward_in_each_round, averag
         plt.axis([0, timesteps, 0, len(arms) + 1])
         plt.xlabel('Time-step t', fontsize=12)
         plt.ylabel(f'{algo.get_name()}\'s arm selection', fontsize=12)
+        plt.yticks(ticks=arms, labels=restaurant_names)
         plt.title("Arm selection scatter plot", fontsize=13)
 
     plt.tight_layout(pad=2.0)
@@ -152,7 +153,7 @@ def main():
     algo_exp3 = Exp3(n_arms, param_dict)
     algo_thompson = ThompsonSampling(n_arms, param_dict)
 
-    algorithms = [algo_ucb_bayesian, algo_epsilon, algo_softmax]
+    algorithms = [algo_ucb1, algo_epsilon, algo_softmax]
 
     # semi-global variables
     timesteps = T
@@ -251,7 +252,7 @@ def main():
             max_avg_reward = max(max_avg_reward, average_reward_in_each_round[j][t])
 
     plot_graph(timesteps, arms, algorithms, average_reward_in_each_round, average_cum_rewards, algorithm_arm_selections,
-               algorithm_average_arm_selections, max_avg_reward, min_avg_reward, max_cum_reward, N, T)
+               algorithm_average_arm_selections, max_avg_reward, min_avg_reward, max_cum_reward, N, T, restaurant_names)
     plot_cum_rewards(algorithms, average_cum_rewards, timesteps, max_cum_reward)
 
 
