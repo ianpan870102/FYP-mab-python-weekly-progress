@@ -34,20 +34,21 @@ def plot_regret(X, Y, cumulative_optimal_reward, cumulative_reward, average_rewa
 
 
 '''Initialisation and Preprocess phase'''
+# C candidate prices, N competitors (demand functions)
 cand_prices = [5, 6, 7, 8]
-T = 5
+T = 5  # rounds
 total_iteration = 3
 demand_list = [[110, 105, 100, 95], [120, 89, 85, 81], [100, 90, 60, 50]]
 # competitors and prices are 0-index based
 N = len(demand_list)
-C = len(demand_list[0])
+C = len(demand_list[0])  # len(cand_prices)
 optimal_revenue = 700
 
-demand_matrix = np.zeros(shape=(N, C, T + 1), dtype=int)
-avg_dem_matrix = np.zeros(shape=(N, C), dtype=int)
+demand_matrix = np.zeros(shape=(N, C, T + 1), dtype=int)  # keeps appending every timestep
+avg_dem_matrix = np.zeros(shape=(N, C), dtype=int)  # dm: will be overwritten every time-step
 
-revenue_matrix = np.zeros(shape=(N, C, T + 1), dtype=int)
-avg_rev_matrix = np.zeros(shape=(N, C), dtype=int)
+revenue_matrix = np.zeros(shape=(N, C, T + 1), dtype=int)  # keeps appending every timestep
+avg_rev_matrix = np.zeros(shape=(N, C), dtype=int)  # rm: will be overwritten every time-step
 
 # the first element is 0 because time is 1-index based in MAB for-loop
 observed_demand = [0, 112, 64, 88, 74, 80]
@@ -80,7 +81,7 @@ def main():
             for j in range(C):
                 # This 3rd index is one as T is 1-based
                 demand_matrix[i][j][1] = demand_list[i][j]
-                # TODO: imporve fetching of price to find revenue
+                # TODO: improve fetching of price to find revenue
                 revenue_matrix[i][j][1] = demand_matrix[i][j][1]*cand_prices[j]
 
         # Should this array be dynamic?
@@ -141,9 +142,9 @@ def main():
         x_axis[t] = t
         cum_optimal_revenue += optimal_revenue
         cum_avg_revenue += average_reward_in_each_round[t]
-        regrets[t] = cum_optimal_revenue - cum_avg_revenue
-        print("cum optimal revenuce", cum_optimal_revenue)
-        print("cum average revenuce", cum_avg_revenue)
+        regrets[t] = max(0, cum_optimal_revenue - cum_avg_revenue)
+        print("cum optimal revenue", cum_optimal_revenue)
+        print("cum average revenue", cum_avg_revenue)
     print(average_reward_in_each_round)
     print(regrets)
     plot_regret(x_axis, regrets, cum_optimal_revenue, cum_avg_revenue, average_reward_in_each_round, T + 1,
