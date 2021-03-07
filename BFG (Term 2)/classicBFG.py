@@ -2,8 +2,8 @@ import random
 import numpy as np
 import random
 import matplotlib.pyplot as plt
-from arms.bernoulli import BernoulliArm
-from arms.normal import NormalArm
+# from arms.bernoulli import BernoulliArm
+# from arms.normal import NormalArm
 
 from matplotlib import rcParams
 rcParams['font.family'] = ['Roboto']
@@ -33,52 +33,12 @@ def plot_regret(X, Y, cumulative_optimal_reward, cumulative_reward, average_rewa
     plt.show()
 
 
-'''Initialisation and Preprocess phase'''
-# C candidate prices, N competitors (demand functions)
-cand_prices = [5, 6, 7, 8] # a.k.a. "p"
-T = 5  # rounds
-total_iteration = 3
-
-# 3 competitors, 4 candidate prices
-dm = [[110, 105, 100, 95], [120, 89, 85, 81], [100, 90, 60, 50]]
-rm = generateRm()
-optimal_prices = initialize_optimal_prices()
-# competitors and prices are 0-index based
-N = len(dm)
-C = len(dm[0])  # len(cand_prices)
-optimal_revenue = 700  # TODO: hard-coded
-
-# the first element is 0 because time is 1-index based in MAB for-loop
-
-
 def generateRm():
     rm = dm
     for row in rm:
         for i in range(len(row)):
             row[i] *= cand_prices[i]
     return rm
-
-
-def observeDemand():
-    """TODO: Preferably we can observe demand that's associated with a distribution, and 
-             we should only return one value at a time, not the whole array"""
-    observed_demand = [0, 112, 64, 88, 74, 80]  # hard-coded (T is 1-based)
-    return observed_demand
-
-
-# def update_optimal_prices():
-#     opt_prices = []
-#     for i in range(N):
-#         idx = np.argmax(rm[i])
-#         opt_prices.append(cand_prices[idx])
-#     return opt_prices
-
-# def update_avg_demand_revenue():
-#     for i in range(N):
-#         for j in range(C):
-#             dm[i][j] = np.sum(demand_matrix[i][j])/np.count_nonzero(demand_matrix[i][j])
-#             rm[i][j] = np.sum(revenue_matrix[i][j])/np.count_nonzero(revenue_matrix[i][j])
-
 
 def initialize_optimal_prices():
     optimal_prices = []
@@ -87,9 +47,48 @@ def initialize_optimal_prices():
         optimal_prices.append(cand_prices[idx])
     return optimal_prices
 
+def observeDemand():
+    """TODO: Preferably we can observe demand that's associated with a distribution, and 
+             we should only return one value at a time, not the whole array"""
+    observed_demand = [0, 112, 64, 88, 74, 80]  # hard-coded (T is 1-based)
+    return observed_demand
+
+
+def argmax_j(competitor_row):
+    return competitor_row.index(max(competitor_row))
+
+
+def argmin_i(rm_column):
+    return rm_column.index(min(rm_column))
+
+
+def get_cum_revenue(r):
+    cumulative_revenue = 0
+    for k in r.keys():
+        cumulative_revenue += sum(r[k])
+    return cumulative_revenue
+
+
+'''Initialisation and Preprocess phase'''
+# C candidate prices, N competitors (demand functions)
+cand_prices = [5, 6, 7, 8] # a.k.a. "p" in our original pseudocode
+T = 5  # rounds
+total_iteration = 3
+
+
+
+# 3 competitors, 4 candidate prices
+dm = [[110, 105, 100, 95], [120, 89, 85, 81], [100, 90, 60, 50]]
+rm = generateRm()
+N = len(dm)
+C = len(dm[0])  # len(cand_prices)
+optimal_revenue = 700  # TODO: hard-coded
+optimal_prices = initialize_optimal_prices()
+# competitors and prices are 0-index based
+
 
 def main():
-    curr_price = random.choice(cand_prices)
+    curr_price = random.choice(optimal_prices)
     x = np.zeros(T + 1, dtype=int)  # array of observed demands
 
     # keys are the candidate pricings, and values are the calculated revenues associated with those key prices.
@@ -106,53 +105,34 @@ def main():
         avg_r_curr_price = sum(r[curr_price])/len(r[curr_price])
 
         # Update dm, rm, optimal price according to latest observed demand and revenue
-        # prev_i is the index of the competitor whose optimal price we chose
+        # prev_i is the index of the competitor whose optimal price we chose (last round)
         prev_i = optimal_prices.index(curr_price)
-        cand_num = p.index(curr_price)
+        cand_num = cand_prices.index(curr_price)
         dm[prev_i][cand_num ] = (dm[prev_i][cand_num ] + x[t]) / 2
         rm[prev_i][cand_num] = dm[prev_i][cand_num] * curr_price
-        optimal_prices[prev_i] = cand_prices[argmax_j(rm[i][j])] # TODO argmax_j() requires implementation
+        optimal_prices[prev_i] = cand_prices[argmax_j(rm[prev_i])]
 
+        i = argmin_i([rm[i][cand_num]-avg_r_curr_price for i in range(N)])
+        curr_price = optimal_prices[i]
 
+    # calculate cumulative revenue
+    print("Cumulative revenue: $", get_cum_revenue(r))
 
-
-
-
-
-        if t > 1:
-            # append observed demand
-            demand_matrix[comp_i][cand_num][t] = observed_demand[t]
-            # append observed revenue
-            revenue_matrix[comp_i][cand_num][t] = curr_revenue
-
-        # re-calculate rm and dm
-        update_avg_demand_revenue()
-
-        # update optimal price after updating demand and revenue matrices
-        opt_prices_list = update_optimal_prices()
-        # calculate revenue difference for chosen cand_num
-        for i in range(N):
-            rev_diff_matrix[i] = abs(rm[i][cand_num] - curr_revenue)
-        # min_diff = np.amin(rev_diff_matrix)
-        # if multiple values are similar, the first one will be chosen
-        # set curr_price to optimal price of competitor i
-        curr_price = opt_prices_list[comp_i]
-
-    x_axis = np.zeros(shape=(T + 1), dtype=int)
-    regrets = np.zeros(shape=(T + 1), dtype=int)
-    cum_optimal_revenue = 0
-    cum_avg_revenue = 0
-    for t in range(1, T + 1):
-        x_axis[t] = t
-        cum_optimal_revenue += optimal_revenue
-        cum_avg_revenue += average_reward_in_each_round[t]
-        regrets[t] = max(0, cum_optimal_revenue - cum_avg_revenue)
-        print("cum optimal revenue", cum_optimal_revenue)
-        print("cum average revenue", cum_avg_revenue)
-    print(average_reward_in_each_round)
-    print(regrets)
-    plot_regret(x_axis, regrets, cum_optimal_revenue, cum_avg_revenue, average_reward_in_each_round, T + 1,
-                "new_algorithm")
+    # x_axis = np.zeros(shape=(T + 1), dtype=int)
+    # regrets = np.zeros(shape=(T + 1), dtype=int)
+    # cum_optimal_revenue = 0
+    # cum_avg_revenue = 0
+    # for t in range(1, T + 1):
+    #     x_axis[t] = t
+    #     cum_optimal_revenue += optimal_revenue
+    #     cum_avg_revenue += average_reward_in_each_round[t]
+    #     regrets[t] = max(0, cum_optimal_revenue - cum_avg_revenue)
+    #     print("cum optimal revenue", cum_optimal_revenue)
+    #     print("cum average revenue", cum_avg_revenue)
+    # print(average_reward_in_each_round)
+    # print(regrets)
+    # plot_regret(x_axis, regrets, cum_optimal_revenue, cum_avg_revenue, average_reward_in_each_round, T + 1,
+    #             "new_algorithm")
 
 
 if __name__ == "__main__":
