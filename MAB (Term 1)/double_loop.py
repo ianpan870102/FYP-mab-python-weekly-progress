@@ -118,15 +118,15 @@ def main():
     max_mu = max([arm.mu for arm in arms])
     n_arms = len(arms)
     print(f'Optimal arm: #{argmax([arm.mu for arm in arms]) + 1}')
-
-    algo_epsilon = EpsilonGreedy(0.05, n_arms)
-    algo_anneal_epsilon = AnnealingEpsilonGreedy(n_arms)
-    algo_ucb1 = UCB1(n_arms)
-    algo_ucb_bayesian = UCB_Bayesian(1.96, n_arms)  # 95% confident
-    algo_softmax = Softmax(.2, n_arms)
-    algo_anneal_softmax = AnnealingSoftmax(n_arms)
-    algo_exp3 = Exp3(.2, n_arms)
-    algo_thompson = ThompsonSampling(n_arms)
+    param_dict = {"epsilon": 0.5, "sigma": 1.96, "tau": 0.2, "gamma": 0.2}
+    algo_epsilon = EpsilonGreedy(n_arms, param_dict)
+    algo_anneal_epsilon = AnnealingEpsilonGreedy(n_arms, param_dict)
+    algo_ucb1 = UCB1(n_arms, param_dict)
+    algo_ucb_bayesian = UCB_Bayesian(n_arms, param_dict)  # 95% confident
+    algo_softmax = Softmax(n_arms, param_dict)
+    algo_anneal_softmax = AnnealingSoftmax(n_arms, param_dict)
+    algo_exp3 = Exp3(n_arms, param_dict)
+    algo_thompson = ThompsonSampling(n_arms, param_dict)
 
     algorithms = [algo_ucb1]
     algorithm_rewards = []  # 2D list[algo][t] (array of running avg. rewards for each algo at time-step t)
@@ -145,7 +145,7 @@ def main():
 
         for i in range(total_iteration):
             # TODO: reinitialize this DYNAMICALLY!!
-            algo = UCB1(n_arms)  # reinitialize algorithm (clear previous memory)
+            algo = UCB1(n_arms, param_dict)  # reinitialize algorithm (clear previous memory)
             for t in range(timesteps):  # NOTE: 0 based? 1 based?
                 chosen_arm = algo.select_arm()
                 arm_selections.append(chosen_arm + 1)  # convert 0-based index to 1-based
@@ -194,9 +194,9 @@ def main():
     for i in range(len(algorithms)):
         print(f"{algorithms[i].get_name()}: {algorithm_cum_rewards[i][-1]:.2f}")
 
-    # plot_graph(timesteps, arms, algorithms, algorithm_rewards, algorithm_cum_rewards, algorithm_arm_selections, max_mu,
-    #            max_cum_reward)
-    # plot_cum_rewards(algorithms, algorithm_cum_rewards, timesteps, max_cum_reward)
+    plot_graph(timesteps, arms, algorithms, algorithm_rewards, algorithm_cum_rewards, algorithm_arm_selections, max_mu,
+               max_cum_reward)
+    plot_cum_rewards(algorithms, algorithm_cum_rewards, timesteps, max_cum_reward)
 
 
 if __name__ == "__main__":
