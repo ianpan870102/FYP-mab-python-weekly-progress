@@ -15,7 +15,7 @@ def plot_regret(X, Y, cumulative_optimal_reward, cumulative_reward, average_rewa
     fig.suptitle(f'Performance of Classic BFG')
     fig.subplots_adjust(hspace=0.5)
 
-    axs[0].plot(X, Y, color='red', label='Regret of UCB')
+    axs[0].plot(X, Y, color='red', label='Regret of BFG')
     axs[0].set(xlabel='round number', ylabel='Regret')
     axs[0].grid(True)
     axs[0].legend(loc='lower right')
@@ -104,6 +104,19 @@ def observeDemand(curr_price) -> int:
     return int(random.gauss(100 - 5*curr_price, 3))
 
 
+def getUnitCost(demand: int) -> float:
+    """
+    Implementation of decreasing unit cost:
+    Unit cost drops as demand/production increases.
+    TODO: model the weight to be changing (log, ln?)
+    unit cost difference between 100 & 200 demand should be greater than the unit
+    cost difference between 1000 & 1100 demand. **Decaying weight**
+    """
+    original_unit_cost = 3.5
+    min_unit_cost = 2.5 # cost cannot get lower than this number
+    weight = 0.001
+    return max(min_unit_cost, original_unit_cost - demand * weight)
+
 def argmax_j(competitor_row):
     return np.argmax(competitor_row)
 
@@ -128,13 +141,13 @@ def main():
     N = 3
     C = 4
 
-    T = 10  # rounds (5000)
+    T = 500  # rounds (5000)
     iterations = 5  # total iteration
     avg_rewards = np.zeros(shape=(T + 1), dtype=float)
     cum_rewards = np.zeros(shape=(T + 1), dtype=float)
     average_cum_rewards = np.zeros(shape=(T + 1), dtype=float)
     cum_rewards_stacked = np.zeros(shape=(T + 1), dtype=float)
-    running_optimal_revenue = 0
+    running_optimal_reward = 0
     # will be use to get the average_reward_in_each_round
     timestep_reward_stacked = np.zeros((T + 1), dtype=int)
     arm_selection_count = np.zeros(shape=(T + 1, C), dtype=float)
@@ -160,11 +173,11 @@ def main():
         for t in range(1, T + 1):
             # print(i, "\t", curr_price, "\t", cand_num)
             # curr_optimal_revenue = np.amax(rm)  # find maximum in 2D matrix
-            # running_optimal_revenue = max(running_optimal_revenue, curr_optimal_revenue)
+            # running_optimal_reward = max(running_optimal_reward, curr_optimal_revenue)
             x[t] = observeDemand(curr_price)
-            reward = curr_price*x[t] # current revenue
-            # print(curr_price,"*",x[t],"=",reward)
-            running_optimal_revenue = max(running_optimal_revenue, reward)
+            # reward = curr_price*x[t]  # current revenue
+            reward = (curr_price - getUnitCost(x[t])) * x[t]  # current profit
+            running_optimal_reward = max(running_optimal_reward, reward)
 
             if curr_price not in r.keys():
                 r[curr_price] = [curr_price*x[t]]
@@ -186,19 +199,19 @@ def main():
             # cum_rewards.append(new_avg*t)
             cum_rewards[t] = cum_rewards[t - 1] + reward
 
-            dm[i][cand_num] = (dm[i][cand_num] + x[t])//2 # TODO: Try a weighted average
+            dm[i][cand_num] = (dm[i][cand_num] * 0.9 + x[t] * 0.1) # TODO: Try a weighted average
             rm[i][cand_num] = dm[i][cand_num]*curr_price
             optimal_prices[i] = cand_prices[argmax_j(rm[i])]
 
             # find the competitor with least difference in revenue
             i = argmin_i([np.abs(rm[j][cand_num] - avg_r_curr_price) for j in range(N)])
-            print(i)
+            # print(i)
             curr_price = optimal_prices[i]
 
             # EXTRA DEBUG
-            for j in range(N):
-                print(np.abs(rm[j][cand_num]- avg_r_curr_price))
-            print("-----------------------------------------")
+            # for j in range(N):
+            #     print(np.abs(rm[j][cand_num]- avg_r_curr_price))
+            # print("-----------------------------------------")
 
         cur_max_r = 0
         for row in rm:
@@ -225,7 +238,7 @@ def main():
 
     for t in range(1, T + 1):
         x_axis[t] = t
-        cumulative_optimal_reward += running_optimal_revenue
+        cumulative_optimal_reward += running_optimal_reward
         cumulative_reward += average_reward_in_each_round[t]
         # print("cumulative_optimal_reward at t", t, "is", cumulative_optimal_reward)
         # print("cumulative_reward at t", t, "is", cumulative_reward)
@@ -243,7 +256,7 @@ def main():
     plot_regret(x_axis, regrets, cumulative_optimal_reward, cumulative_reward, average_reward_in_each_round, T)
     max_cum_reward = max(cum_rewards)
     plot_graph(T, cand_prices, average_reward_in_each_round, cum_rewards, average_arm_selections,
-               running_optimal_revenue, max_cum_reward)
+               running_optimal_reward, max_cum_reward)
 
     # x_axis = np.zeros(shape=(T + 1), dtype=int)
     # regrets = np.zeros(shape=(T + 1), dtype=int)
