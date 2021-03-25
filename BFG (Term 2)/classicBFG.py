@@ -1,5 +1,6 @@
 import random
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 # from arms.bernoulli import BernoulliArm
 # from arms.normal import NormalArm
@@ -112,10 +113,14 @@ def getUnitCost(demand: int) -> float:
     unit cost difference between 100 & 200 demand should be greater than the unit
     cost difference between 1000 & 1100 demand. **Decaying weight**
     """
-    original_unit_cost = 3.5
-    min_unit_cost = 2.5 # cost cannot get lower than this number
-    weight = 0.001
-    return max(min_unit_cost, original_unit_cost - demand * weight)
+    # original_unit_cost = 3.5
+    # min_unit_cost = 2.5 # cost cannot get lower than this number
+    # weight = 0.001
+    # return max(min_unit_cost, original_unit_cost - demand * weight)
+    afc = 2.5  # average fixed cost, constant regardless of production amount
+    weight = 0.75
+    avc = weight * math.log(demand) # TODO: why does increasing unit cost gives us better graphs?
+    return afc + avc
 
 def argmax_j(competitor_row):
     return np.argmax(competitor_row)
@@ -142,7 +147,7 @@ def main():
     C = 4
 
     T = 500  # rounds (5000)
-    iterations = 5  # total iteration
+    iterations = 10  # total iteration
     avg_rewards = np.zeros(shape=(T + 1), dtype=float)
     cum_rewards = np.zeros(shape=(T + 1), dtype=float)
     average_cum_rewards = np.zeros(shape=(T + 1), dtype=float)
@@ -171,12 +176,13 @@ def main():
         x = np.zeros(T + 1, dtype=int)  # array of observed demands
 
         for t in range(1, T + 1):
-            # print(i, "\t", curr_price, "\t", cand_num)
             # curr_optimal_revenue = np.amax(rm)  # find maximum in 2D matrix
             # running_optimal_reward = max(running_optimal_reward, curr_optimal_revenue)
             x[t] = observeDemand(curr_price)
             # reward = curr_price*x[t]  # current revenue
-            reward = (curr_price - getUnitCost(x[t])) * x[t]  # current profit
+            unit_cost = getUnitCost(x[t])
+            # print(unit_cost)
+            reward = (curr_price - unit_cost) * x[t]  # current profit
             running_optimal_reward = max(running_optimal_reward, reward)
 
             if curr_price not in r.keys():
