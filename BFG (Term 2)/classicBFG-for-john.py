@@ -4,6 +4,7 @@ import math
 import matplotlib.pyplot as plt
 
 from matplotlib import rcParams
+
 rcParams['font.family'] = ['Roboto']
 for w in ["font.weight", "axes.labelweight", "axes.titleweight", "figure.titleweight"]:
     rcParams[w] = 'regular'
@@ -32,8 +33,8 @@ def plot_regret(X, Y, cumulative_optimal_reward, cumulative_reward, average_rewa
     plt.show()
 
 
-def plot_graph(T, cand_prices, average_reward_in_each_round, cum_rewards, average_arm_selections,
-               optimal_revenue, max_cum_reward):
+def plot_graph(T, cand_prices, average_reward_in_each_round, cum_rewards, average_arm_selections, optimal_revenue,
+               max_cum_reward):
     """Plot a 3-row k-column graph with rolling average, cumulative reward and arm selection scatter plot."""
     plt.figure(figsize=(12, 8))
     plt.subplot(3, 1, 1)
@@ -104,8 +105,9 @@ def getUnitCost(demand: int) -> float:
     """
     average_fixed_cost = 2.5
     weight = 0.75
-    average_variable_cost = weight * math.log(demand)
+    average_variable_cost = weight*math.log(demand)
     return average_fixed_cost + average_variable_cost
+
 
 def argmax_j(competitor_row):
     return np.argmax(competitor_row)
@@ -141,10 +143,10 @@ def main():
     arm_selection_count = np.zeros(shape=(T + 1, C), dtype=float)
     average_arm_selections = np.zeros(shape=(C, T + 1), dtype=float)
 
+    cand_prices: List[int] = [5, 6, 7, 8]  # a.k.a. "p" in our original pseudocode
     for iteration in range(iterations):
         print("#", iteration)
         dm = generateDm(N, C)
-        cand_prices = [5,6,7,8]  # a.k.a. "p" in our original pseudocode
         rm = generateRm(dm, cand_prices)
 
         optimal_prices = initialize_optimal_prices(N, rm, cand_prices)
@@ -159,7 +161,7 @@ def main():
         for t in range(1, T + 1):
             x[t] = observeDemand(curr_price)
             unit_cost = getUnitCost(x[t])
-            reward = (curr_price - unit_cost) * x[t]  # current profit
+            reward = (curr_price - unit_cost)*x[t]  # current profit
             running_optimal_reward = max(running_optimal_reward, reward)
 
             if curr_price not in r.keys():
@@ -180,7 +182,7 @@ def main():
             avg_rewards[t] = new_avg
             cum_rewards[t] = cum_rewards[t - 1] + reward
 
-            dm[i][cand_num] = (dm[i][cand_num] * 0.9 + x[t] * 0.1)
+            dm[i][cand_num] = (dm[i][cand_num]*0.9 + x[t]*0.1)
             rm[i][cand_num] = dm[i][cand_num]*curr_price
             optimal_prices[i] = cand_prices[argmax_j(rm[i])]
 
@@ -222,6 +224,7 @@ def main():
     max_cum_reward = max(cum_rewards)
     plot_graph(T, cand_prices, average_reward_in_each_round, cum_rewards, average_arm_selections,
                running_optimal_reward, max_cum_reward)
+
 
 if __name__ == "__main__":
     main()
